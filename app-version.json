@@ -5,4 +5,8 @@
   "buildNumber": 1,
   "forceUpdate": false
   "updatedAt": "2025-12-24"
+  "storeUrl": {
+    "android": "https://play.google.com/store/apps/details?id=com.bdragon717.PMA",
+    "ios": "https://apps.apple.com/kr/app/pma/id1234567890"
+  }
 }
