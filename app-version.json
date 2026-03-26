@@ -3,9 +3,9 @@
   "isMandatory": false,
   "build": 1,
   "forceUpdate": false,
-  "updatedAt": "2025-12-24",
+  "updatedAt": "2026-03-26",
   "storeUrl": {
-    "android": "https://play.google.com/store/apps/details?id=com.bdragon717.PMA",
+    "android": "https://github.com/bdragon717/pma//releases/latest/download/PMA_latest.apk",
     "ios": "https://apps.apple.com/kr/app/pma/id1234567890"
   }
 }
