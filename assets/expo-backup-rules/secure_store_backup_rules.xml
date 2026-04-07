@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <!-- Expo SQLite 데이터베이스가 저장되는 경로를 포함 -->
+    <include domain="file" path="SQLite" />
+    <include domain="database" path="." />
+</full-backup-content>

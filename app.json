@@ -1,0 +1,105 @@
+{
+  "expo": {
+    "name": "PMA",
+    "slug": "PMA",
+    "version": "1.0.12",
+    "orientation": "portrait",
+    "icon": "./assets/images/pma-icon.png",
+    "scheme": "pma",
+    "userInterfaceStyle": "automatic",    
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.bdragon717.PMA",
+      "icon": "./assets/images/pma-icon.png"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/images/pma-icon.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+      },      
+      "predictiveBackGestureEnabled": false,
+      "package": "com.bdragon717.PMA",
+      "versionCode": 12,
+      "permissions": [
+        "READ_CONTACTS",
+        "WRITE_CONTACTS",
+        "SCHEDULE_EXACT_ALARM",        
+        "REQUEST_INSTALL_PACKAGES",
+        "READ_MEDIA_IMAGES",   
+        "READ_MEDIA_VIDEO",    
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ]
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/pma-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff",
+          "dark": {
+            "backgroundColor": "#000000"
+          }
+        }
+      ],
+      "expo-sqlite",
+      "expo-secure-store",
+      [
+        "expo-contacts",
+        {
+          "contactsPermission": "이 앱에서 연락처를 읽기 위해 권한이 필요합니다."
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "allowBackup": true,
+            "dataExtractionRules": "./assets/expo-backup-rules/secure_store_data_extraction_rules.xml",
+            "fullBackupContent": "./assets/expo-backup-rules/secure_store_backup_rules.xml"
+          }
+        }
+      ],
+      "expo-font",
+      "expo-image",
+      "expo-sharing",
+      "expo-web-browser",
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Allow $(PRODUCT_NAME) to access your photos.",
+          "savePhotosPermission": "Allow $(PRODUCT_NAME) to save photos.",
+          "isUsageDescriptionRequired": true
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "eb4c3fd7-e4c0-4b67-8964-4fd3d9334dc4"
+      }
+    },
+    "owner": "bdragon717",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/eb4c3fd7-e4c0-4b67-8964-4fd3d9334dc4",
+      "requestHeaders": {
+        "expo-channel-name": "production"
+        }
+    }
+  }
+}
