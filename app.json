@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "PMA",
+    "name": "왜가리",
     "slug": "PMA",
-    "version": "1.0.12",
+    "version": "1.0.14",
     "orientation": "portrait",
     "icon": "./assets/images/pma-icon.png",
     "scheme": "pma",
@@ -20,7 +20,7 @@
       },      
       "predictiveBackGestureEnabled": false,
       "package": "com.bdragon717.PMA",
-      "versionCode": 12,
+      "versionCode": 14,
       "permissions": [
         "READ_CONTACTS",
         "WRITE_CONTACTS",

@@ -20,7 +20,7 @@ import {
 const MyInfoView = () => {
   const { styles, colors } = useTheme();
   const { userSelectSql, userDeleteSql } = useDatabase() as any; // Insert SQL
-  const [myinfo, setMyInfo] = useState<UserData | null>(null); // 사용자 정보 Data
+  const [myinfo, setMyInfo] = useState<UserData>(); // 사용자 정보 Data
   const router = useRouter(); // 경로
   const { title } = useLocalSearchParams<{ title: string }>();
   const logout = useUserStore((state) => state.logout); // Zustand 저장소에서 가져오기
@@ -71,6 +71,37 @@ const MyInfoView = () => {
     }, 0);
   };  
 
+  // 이름 마스킹
+  const maskName = (name: string | null | undefined) => {
+    if ( ! name) return '';
+
+    const len = name.length;
+    
+    if (len < 2) return name;
+    if (len === 2) return name[0] + "*";
+    
+    // 첫 글자와 마지막 글자 사이를 모두 별표 처리
+    return name[0] + "*".repeat(len - 2) + name.slice(-1);
+  }
+
+  // 전화번호 마스킹
+  const maskPhoneNumber = (phone: string | null | undefined) => {
+    if ( ! phone) return '';
+  
+    // 하이픈이 있는 경우 (010-1234-5678 -> 010-****-5678)
+    if (phone.includes("-")) {
+      const parts = phone.split("-"); // 하이픈 기준으로 자름
+      if (parts.length === 3) {
+        return `${parts[0]}-${"*".repeat(parts[1].length)}-${parts[2]}`;
+      }
+    }
+  
+    // 하이픈이 없는 경우 (01012345678 -> 010****5678)
+    return phone.replace(/^(\d{3})(\d{3,4})(\d{4})$/, (match, p1, p2, p3) => {
+      return `${p1}${"*".repeat(p2.length)}${p3}`;
+    });
+  };
+
   return (
       <View style={styles.containerze}>
         {/* 헤더 */}
@@ -109,11 +140,11 @@ const MyInfoView = () => {
         <View style={styles.content}>
           <Text style={styles.textft}>
             이름{"\n"} 
-            {myinfo?.name}
+            {maskName(myinfo?.name)}
           </Text>
           <Text style={styles.textft}>
             전화번호{"\n"} 
-            {myinfo?.telno}
+            {maskPhoneNumber(myinfo?.telno)}
           </Text>
           <Text style={styles.textft}>
             비밀번호 변경일자{"\n"} 
