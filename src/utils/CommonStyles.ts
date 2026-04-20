@@ -614,7 +614,7 @@ export const getCommonStyles = (colors: any,
      fontSize: sizes.size14,
      color: colors.darkGray,
      textAlign: 'center',
-     marginTop: 10,
+     marginTop: 50,
     },
     infoText: {
       textAlign: 'center',
@@ -934,14 +934,14 @@ export const getCommonStyles = (colors: any,
     },
     downloadProgressst: { 
       height: 10,
-      backgroundColor: '#eee',
+      backgroundColor: colors.gray,
       borderRadius: 5,
       overflow: 'hidden',
       marginTop: 5,
     },
     downloadProgresssn: { 
       height: '100%',
-      backgroundColor: '#4caf50',
+      backgroundColor: colors.green,
     },
 });
 

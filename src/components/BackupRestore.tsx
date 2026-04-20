@@ -11,25 +11,34 @@ import * as SecureStore from "expo-secure-store";
 import * as Sharing from 'expo-sharing';
 import * as SQLite from 'expo-sqlite';
 import * as Updates from 'expo-updates'; // 앱 재시작을 위해 추가
-import React from 'react';
-import { Alert, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { ActivityIndicator, Alert, Text, View } from 'react-native';
 import { unzip, zip } from 'react-native-zip-archive';
 
 // 실제 사용 중인 DB 이름(확장자 .db 포함)
 const DB_NAME = 'pmdb.db'; 
 const KEY_NAME = "SQLITE_AES_KEY";
+const pause = (ms:number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export default function BackupRestore() {
   const { styles } = useTheme();
+  const [busy, setBusy] = useState(false);
+  const [status, setStatus] = useState('');
   
   // 데이터 백업 (내보내기)
   const backupDatabase = async () => {
     try {
-      const baseDir = FileSystem.documentDirectory!; // null 방지 처리
+      setBusy(true);
+      setStatus('데이터 백업 (내보내기) 시작...');
+      //const baseDir = FileSystem.documentDirectory!; // null 방지 처리
+      const baseDir = FileSystem.documentDirectory;
+      if ( ! baseDir) throw new Error("저장소 접근 실패");
       const tmpDir = `${baseDir}backup_tmp/`;
       const zipPath = `${baseDir}full_backup.zip`;
 
       // 이전 잔여물 정리 및 폴더 생성
+      setStatus('이전 잔여물 정리 및 폴더 생성...');
+      await pause(10);
       const tmpInfo = await FileSystem.getInfoAsync(tmpDir);
       if (tmpInfo.exists) {
        await FileSystem.deleteAsync(tmpDir, { idempotent: true });
@@ -37,6 +46,8 @@ export default function BackupRestore() {
       await FileSystem.makeDirectoryAsync(tmpDir, { intermediates: true });  
       
       // 암호화 키 추출 및 파일 저장
+      setStatus('암호화 키 추출 및 파일 저장...');
+      await pause(10);
       const currentKey = await SecureStore.getItemAsync(KEY_NAME);
       if (currentKey) {
         await FileSystem.writeAsStringAsync(`${tmpDir}key.txt`, currentKey);
@@ -47,6 +58,8 @@ export default function BackupRestore() {
       }
 
       // DB 파일 복사
+      setStatus('DB 파일 복사...');
+      await pause(50);
       const dbFiles = [DB_NAME, `${DB_NAME}-wal`, `${DB_NAME}-shm`];
       for (const file of dbFiles) {
         const uri = `${baseDir}SQLite/${file}`;
@@ -60,18 +73,26 @@ export default function BackupRestore() {
       }
 
       // 사진 및 문서 파일들 복사
+      setStatus('사진 및 문서 파일들 복사...');
+      await pause(50);
       const allFiles = await FileSystem.readDirectoryAsync(baseDir);
       // img_ 또는 doc_로 시작하는 모든 파일 필터링
       const targetFiles = allFiles.filter(name => name.startsWith('img_') || name.startsWith('doc_'));
       
+      let count = 0;
       for (const fileName of targetFiles) {
+        count++;
+        setStatus(`파일 복사 중... ${count}/${targetFiles.length}`);
         await FileSystem.copyAsync({
           from: `${baseDir}${fileName}`,
           to: `${tmpDir}${fileName}`
-        });
+        });      
+        if (count % 10 === 0) await pause(10);
       }
 
       // 압축 (핵심!)
+      setStatus('압축 중...');
+      await pause(100);
       // react-native-zip-archive는 경로 앞에 'file://'가 있으면 오류가 날 수 있어 제거해주는 것이 안전.
       const cleanTmpDir = tmpDir.replace('file://', '').replace(/\/$/, '');
       const cleanZipPath = zipPath.replace('file://', '');
@@ -81,7 +102,11 @@ export default function BackupRestore() {
         await FileSystem.deleteAsync(zipPath, { idempotent: true });
       }
 
-      await zip(cleanTmpDir, cleanZipPath);
+      try {
+        await zip(tmpDir, zipPath);
+      } catch (e) {
+        await zip(cleanTmpDir, cleanZipPath);
+      }
 
       const zipFileInfo = await FileSystem.getInfoAsync(zipPath);
       if (zipFileInfo.exists) {
@@ -95,6 +120,8 @@ export default function BackupRestore() {
       }
 
       // 공유창 열기
+      setStatus('공유창 열기...');
+      await pause(100);
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(zipPath, {
           dialogTitle: '전체 데이터 백업',
@@ -104,10 +131,15 @@ export default function BackupRestore() {
       }
 
       // 마무리 정리
+      setStatus('마무리 정리...');
+      await pause(10);
       await FileSystem.deleteAsync(tmpDir, { idempotent: true }); // tmpDir 삭제
     } catch (error) {
       console.error(error);
       Alert.alert("백업 실패", "백업 중 오류가 발생했습니다.");
+    } finally {
+      setBusy(false);
+      setStatus('');
     }
   }; 
 
@@ -120,34 +152,52 @@ export default function BackupRestore() {
         { text: "취소", style: "cancel" },
         { text: "확인", onPress: async () => {
           try {
+            setBusy(true);
+            setStatus('데이터 복원 (가져오기) 시작...');
             const result = await DocumentPicker.getDocumentAsync({ type: ['application/zip', 'public.zip-archive'] });
             if (result.canceled) return;
 
-            const baseDir = FileSystem.documentDirectory!;
+            //const baseDir = FileSystem.documentDirectory!;
+            const baseDir = FileSystem.documentDirectory;
+            if ( ! baseDir) throw new Error("저장소 접근 실패");
             const unzipPath = `${baseDir}unzip_tmp/`;
 
             // 이전 잔여물 정리 및 압축 해제 폴더 생성
+            setStatus('이전 잔여물 정리 및 압축 해제 폴더 생성...');
+            await pause(10);
             await FileSystem.deleteAsync(unzipPath, { idempotent: true });
             await FileSystem.makeDirectoryAsync(unzipPath, { intermediates: true });
 
             // 압축 해제 (경로 최적화)
+            setStatus('압축 해제 (경로 최적화)...');
+            await pause(100);
             const selectedFile = result.assets[0];
             const sourceUri = selectedFile.uri.replace('file://', '');
             const targetPath = unzipPath.replace('file://', '').replace(/\/$/, ''); // 마지막 슬래시 제거
             
-            await unzip(sourceUri, targetPath);
+            try {
+              await unzip(selectedFile.uri, unzipPath);
+            } catch (e) {
+              await unzip(sourceUri, targetPath);
+            }
             
             // 복원될 파일 목록 확인
+            setStatus('복원될 파일 목록 확인...');
+            await pause(100);
             const restoredFiles = await FileSystem.readDirectoryAsync(unzipPath);
 
             // 암호화 키 복원
+            setStatus('암호화 키 복원...');
+            await pause(10);
             if (restoredFiles.includes('key.txt')) {
               const restoredKey = await FileSystem.readAsStringAsync(`${unzipPath}key.txt`);
               await SecureStore.setItemAsync(KEY_NAME, restoredKey);
               console.log("암호화 키 복원 완료");
             }
             
-            // DB 파일 복원 전 SQLite 폴더 존재 확인            
+            // DB 파일 복원 전 SQLite 폴더 존재 확인  
+            setStatus('DB 파일 복원 전 SQLite 폴더 존재 확인...');   
+            await pause(10);       
             const sqliteDir = `${baseDir}SQLite/`;
             const sqliteDirInfo = await FileSystem.getInfoAsync(sqliteDir);
             if ( ! sqliteDirInfo.exists) {
@@ -155,6 +205,8 @@ export default function BackupRestore() {
             }
 
             // 파일 삭제 전, 현재 열려있을지 모르는 DB 연결을 확실히 닫기
+            setStatus('파일 삭제 전, 현재 열려있을지 모르는 DB 연결을 확실히 닫기...'); 
+            await pause(10);
             try {
               const db = await SQLite.openDatabaseAsync(DB_NAME);
               await db.closeAsync();
@@ -163,11 +215,15 @@ export default function BackupRestore() {
             }
 
             // 기존 DB 파일 및 WAL 파일 선삭제 (충돌 방지)
+            setStatus('기존 DB 파일 및 WAL 파일 선삭제 (충돌 방지)...'); 
+            await pause(10);
             await FileSystem.deleteAsync(`${sqliteDir}${DB_NAME}`, { idempotent: true });
             await FileSystem.deleteAsync(`${sqliteDir}${DB_NAME}-wal`, { idempotent: true });
             await FileSystem.deleteAsync(`${sqliteDir}${DB_NAME}-shm`, { idempotent: true }); 
             
             // DB 복원
+            setStatus('DB 복원...'); 
+            await pause(10);
             if ( ! restoredFiles.includes(DB_NAME)) {
               throw new Error('Invalid backup file');
             }
@@ -182,6 +238,8 @@ export default function BackupRestore() {
             }
 
             // 사진 및 문서 복원 (img_ 또는 doc_로 시작하는 파일들)
+            setStatus('사진 및 문서 복원...'); 
+            await pause(50);
             for (const fileName of restoredFiles) {
               if (fileName.startsWith('img_') || fileName.startsWith('doc_')) {
                 await FileSystem.copyAsync({
@@ -192,6 +250,8 @@ export default function BackupRestore() {
             }
 
             // 임시 폴더 삭제
+            setStatus('임시 폴더 삭제...');
+            await pause(10);
             await FileSystem.deleteAsync(unzipPath, { idempotent: true });
 
             // 앱 재시작 알림
@@ -215,6 +275,9 @@ export default function BackupRestore() {
           } catch (error) {
             console.error(error);
             Alert.alert("복원 실패", "올바른 백업 파일이 아니거나 복원 중 오류가 발생했습니다.");            
+          } finally {
+            setBusy(false);
+            setStatus('');
           }
         }}
       ]
@@ -239,6 +302,8 @@ export default function BackupRestore() {
                 widthSize={0.50} 
                 heightSize={0.05}
                 fontSize={12}/>
+        {busy && <ActivityIndicator style={{ marginTop: 12 }} />}{/* ActivityIndicator : 로딩 애니메이션(빙글빙글 도는 아이콘) */}
+        {busy && <Text style={{ marginTop: 8 }}>{status}</Text>}
       </View>      
       <Text style={styles.infoth}>
         * 복원 후에는 반드시 앱을 재시작해야 합니다.
