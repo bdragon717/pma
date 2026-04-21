@@ -134,6 +134,7 @@ export default function BackupRestore() {
       setStatus('마무리 정리...');
       await pause(10);
       await FileSystem.deleteAsync(tmpDir, { idempotent: true }); // tmpDir 삭제
+      await FileSystem.deleteAsync(zipPath, { idempotent: true }); // zip 파일 삭제 (공유 후에도 남아있지 않도록)
     } catch (error) {
       console.error(error);
       Alert.alert("백업 실패", "백업 중 오류가 발생했습니다.");
