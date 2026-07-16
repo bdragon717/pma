@@ -1,7 +1,7 @@
 {
-  "latestVersion": "1.7.1",
+  "latestVersion": "1.7.2",
   "isMandatory": false,
-  "build": 50,
+  "build": 51,
   "forceUpdate": false,
   "updatedAt": "2026-06-24",
   "storeUrl": {
