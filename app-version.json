@@ -1,9 +1,9 @@
 {
-  "latestVersion": "1.7.4",
+  "latestVersion": "1.7.5",
   "isMandatory": false,
-  "build": 53,
+  "build": 54,
   "forceUpdate": false,
-  "updatedAt": "2026-08-24",
+  "updatedAt": "2026-08-25",
   "storeUrl": {
     "android": "https://github.com/bdragon717/pma//releases/latest/download/PMA_latest.apk",
     "ios": "https://apps.apple.com/kr/app/pma/id1234567890"
